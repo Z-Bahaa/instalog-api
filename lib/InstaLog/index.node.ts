@@ -27,33 +27,24 @@ interface InstaLogEvent {
 
 const InstaLog = (secretKey: string): {
   secretKey: string;
-  getAll: (page: string) => any;
-  search: (val: string) => any;
-  create: (event: InstaLogEvent) => any;
+  listEvents: (page: number, search_val: string) => any;
+  createEvent: (event: InstaLogEvent) => any;
 } => {
   return {
     secretKey,
-    getAll: (page: string): any => {
+    listEvents: (page: number = 0, search_val: string): any => {
       return prisma.event.findMany({
-        skip: 5*JSON.parse(page),
+        skip: 5*page,
         take: 6,
-        include: {
-          action: true,
-          metadata: true
-        }
-      })
-    },
-    search: (val: string): any => {
-      return prisma.event.findMany({
         where: {
           OR: [
-            {actor_name: {contains: val}},
-            {actor_id: {contains: val}},
-            {target_name: {contains: val}},
-            {target_id: {contains: val}},
+            {actor_name: {contains: search_val, mode: 'insensitive',}},
+            {actor_id: {contains: search_val, mode: 'insensitive',}},
+            {target_name: {contains: search_val, mode: 'insensitive',}},
+            {target_id: {contains: search_val, mode: 'insensitive',}},
             {action: {
-              id: {contains: val},
-              name: {contains: val},
+              id: {contains: search_val, mode: 'insensitive',},
+              name: {contains: search_val, mode: 'insensitive',},
             }}
           ]
         },
@@ -61,13 +52,11 @@ const InstaLog = (secretKey: string): {
           action: true,
           metadata: true
         }
-      })
+      });
     },
-    create: (event: InstaLogEvent): any => {
+    createEvent: (event: InstaLogEvent): any => {
       return prisma.event.create({
         data: {
-          id: event.id,
-          object: "event",
           actor_id: event.actor_id,
           actor_name: event.actor_name,
           group: event.group,
@@ -77,8 +66,6 @@ const InstaLog = (secretKey: string): {
           occurred_at: event.occurred_at,
           action: {
             create: {
-              id: event.action.id,
-              object: event.action.object,
               name: event.action.name,
             }
           },
@@ -90,9 +77,12 @@ const InstaLog = (secretKey: string): {
             }
           },
         },
+        include: {
+          action: true,
+          metadata: true
+        }
       })
     }
-    // listEvents: (): InstaLogEvent[] => this.events,
   };
 }
 

@@ -8,32 +8,32 @@ datasource db {
 }
 
 model Action {
-  id       String      @id 
-  object   String
+  id       String @id @default(uuid())
+  object   String      @default("event_action")
   name     String
   event_id String     @unique
   event    Event @relation(fields: [event_id], references: [id])
 }
 
 model Metadata {
-  id           Int      @id @default(autoincrement())
+  id           String @id @default(uuid())
   redirect     String
   description  String
-  x_request_id String     @unique
-  event_id     String     @unique
-  event        Event @relation(fields: [event_id], references: [id])
+  x_request_id String     
+  event_id     String @unique
+  event        Event  @relation(fields: [event_id], references: [id])
 }
 
 model Event {
-  id          String      @id
-  object      String
+  id          String    @id @default(uuid())
+  object      String    @default("event")
   actor_id    String     
   actor_name  String
   group       String
   target_id   String     
   target_name String
   location    String
-  occurred_at String
-  metadata    Metadata?
+  occurred_at String    
+  metadata    Metadata? 
   action      Action?
 }
