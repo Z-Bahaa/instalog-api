@@ -1,20 +1,3 @@
 {
-  "rewrites": [{ "source": "(.*)", "destination": "/api" }],
-  "version": 2,
-  "buildCommand": "tsc",
-  "builds": [
-    {
-      "src": "index.js",
-      "use": "@vercel/node",
-      "config": {
-        "outputDirectory": "build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "index.js"
-    }
-  ]
+  "rewrites": [{ "source": "(.*)", "destination": "/api" }]
 }
