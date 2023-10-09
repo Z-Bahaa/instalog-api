@@ -23,6 +23,6 @@ process.on('uncaughtException', function (err) {
 app.listen(process.env.PORT, () => {
   console.log("Listening... on port " + process.env.PORT)
 })
-app.get('/', async (_ , res) => {
+app.get('/', async (_: any, res: any) => {
   res.json({ isWorking: true })
 })

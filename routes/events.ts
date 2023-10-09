@@ -8,7 +8,7 @@ const prisma = new PrismaClient()
 const instalog = InstaLog('0')
 
 
-EventsRouter.post('/', async (req: Request & {body: any}, res) => {
+EventsRouter.post('/', async (req: Request & {body: any}, res: any) => {
   const event = req.body.event  
 
   try {
@@ -22,7 +22,7 @@ EventsRouter.post('/', async (req: Request & {body: any}, res) => {
 
 })
 
-EventsRouter.get('/', async (req: Request & {query: any}, res) => { 
+EventsRouter.get('/', async (req: Request & {query: any}, res: any) => { 
 
   try {
     const page = req.query.page === undefined ? 0 : req.query.page
@@ -36,7 +36,7 @@ EventsRouter.get('/', async (req: Request & {query: any}, res) => {
 
 })
 
-EventsRouter.get('/export', async (req: Request & {query: any}, res) => { 
+EventsRouter.get('/export', async (req: Request & {query: any}, res: any) => { 
 
   try {
     const search_val = req.query.search_val

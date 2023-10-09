@@ -23,6 +23,7 @@
     "nodemon": "^3.0.1",
     "prisma": "^5.4.1",
     "serverless-http": "^3.2.0",
+    "ts-node": "^10.9.1",
     "tsc": "^2.0.4",
     "typescript": "^5.2.2"
   },
