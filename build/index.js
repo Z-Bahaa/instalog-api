@@ -16,7 +16,6 @@ const express_1 = __importDefault(require("express"));
 const morgan_1 = __importDefault(require("morgan"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
-const serverless_http_1 = __importDefault(require("serverless-http"));
 const events_1 = __importDefault(require("./routes/events"));
 const app = express_1.default();
 app.use(morgan_1.default('dev'));
@@ -30,4 +29,4 @@ app.listen(process.env.PORT, () => {
 app.get('/', (_, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.json({ isWorking: true });
 }));
-module.exports.handler = serverless_http_1.default(app);
+module.exports = app;

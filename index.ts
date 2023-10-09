@@ -2,7 +2,6 @@ import express from 'express'
 import logger from 'morgan'
 import bodyParser from 'body-parser'
 import cors from 'cors'
-import serverless from 'serverless-http';
 
 import EventsRouter from './routes/events'
 
@@ -23,4 +22,4 @@ app.get('/', async (_: any, res: any) => {
   res.json({ isWorking: true })
 })
 
-module.exports.handler = serverless(app);
+module.exports = app;
