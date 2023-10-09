@@ -22,4 +22,4 @@ app.get('/', async (_: any, res: any) => {
   res.json({ isWorking: true })
 })
 
-module.exports = app;
+export default app;
