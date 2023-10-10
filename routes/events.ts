@@ -60,7 +60,7 @@ EventsRouter.get('/export', async (req: Request & {query: any}, res: any) => {
     });
     const csvWriter = createCsvWriter({
       path: 'events.csv',
-      header: [
+      header: [ 
         { id: 'id', title: 'ID' },
         { id: 'object', title: 'Object' },
         { id: 'actor_id', title: 'Actor ID' },

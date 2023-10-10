@@ -8,11 +8,6 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": [
-    "/api/*.ts",
-    "src/**/*.ts",
-    "./index.ts"
-  ],
   "exclude": [
     "/node_modules/"
   ]

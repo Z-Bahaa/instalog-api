@@ -14,9 +14,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/events', EventsRouter);
 
-
-app.listen(process.env.PORT, () => {
-  console.log("Listening... on port " + process.env.PORT)
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log("Listening... on port " + PORT)
 })
 app.get('/', async (_: any, res: any) => {
   res.json({ isWorking: true })
