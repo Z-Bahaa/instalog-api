@@ -58,7 +58,8 @@ EventsRouter.get('/export', async (req: Request & {query: any}, res: any) => {
         metadata: true
       }
     });
-    const csvWriter = createCsvWriter({
+    const csvWriter = createCsvWriter({      
+      orderBy: { occurred_at: 'desc' },
       path: 'events.csv',
       header: [ 
         { id: 'id', title: 'ID' },

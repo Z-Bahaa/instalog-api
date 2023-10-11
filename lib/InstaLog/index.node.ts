@@ -34,8 +34,9 @@ const InstaLog = (secretKey: string): {
     secretKey,
     listEvents: (page: number = 0, search_val: string): any => {
       return prisma.event.findMany({
-        skip: 5*page,
-        take: 6,
+        orderBy: { occurred_at: 'desc' },
+        skip: 10*page,
+        take: 11,
         where: {
           OR: [
             {actor_name: {contains: search_val, mode: 'insensitive',}},
