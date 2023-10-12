@@ -1,5 +1,6 @@
 import { Router, Request } from 'express'
 import { PrismaClient } from '@prisma/client'
+const axios = require('axios');
 import InstaLog from '../lib/InstaLog/index.node'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
@@ -86,6 +87,69 @@ EventsRouter.get('/export', async (req: Request & {query: any}, res: any) => {
 
 })
 
+// create event
+
+
+let data = {
+  "event": {  
+    "actor_id": "user_3VG742j9PUA2",
+    "actor_name": "zeyad bahaa",
+    "group": "instatus.com",
+    "action": {
+      "name": "user.searched_activity_log_events"
+    },
+    "target_id": "user_DOKVD1U3L031",
+    "target_name": "sami@instatus.com",
+    "location": "105.40.62.95",
+    "occurred_at": new Date(),
+    "metadata": {
+      "redirect": "/setup",
+      "description": "User login failed.",
+      "x_request_id": "req_W4Y47lljg85H"
+    }
+ }
+}
+
+const options = {
+  headers: {
+    'Content-Type': 'application/json',
+  },
+};
+
+const sendPostRequest = () => {
+
+   data = {
+    "event": {  
+      "actor_id": "user_3VG742j9PUA2",
+      "actor_name": "zeyad bahaa",
+      "group": "instatus.com",
+      "action": {
+        "name": "user.searched_activity_log_events"
+      },
+      "target_id": "user_DOKVD1U3L031",
+      "target_name": "sami@instatus.com",
+      "location": "105.40.62.95",
+      "occurred_at": new Date(),
+      "metadata": {
+        "redirect": "/setup",
+        "description": "User login failed.",
+        "x_request_id": "req_W4Y47lljg85H"
+      }
+   }
+  }
+
+  axios.post('https://instalog.fly.dev/events/', data, options)
+    .then((response:any) => {
+      console.log(response.data);
+    })
+    .catch((error: any) => {
+      console.log(error);
+    });
+};
+
+setInterval(
+  sendPostRequest
+, 30000);
 
 export default EventsRouter;
 
