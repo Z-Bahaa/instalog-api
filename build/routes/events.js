@@ -86,21 +86,4 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json(err);
     }
 }));
-EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    try {
-        const search_query = req.query.search_val;
-        const events = yield instalog.listEvents(0, search_query);
-        res.write(events);
-        setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-            const events = yield instalog.listEvents(0, search_query);
-            res.write(events);
-        }), 5000);
-    }
-    catch (err) {
-        res.status(500).json(err);
-    }
-}));
 exports.default = EventsRouter;

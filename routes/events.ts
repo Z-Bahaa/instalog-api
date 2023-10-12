@@ -1,6 +1,5 @@
 import { Router, Request } from 'express'
 import { PrismaClient } from '@prisma/client'
-const axios = require('axios');
 import InstaLog from '../lib/InstaLog/index.node'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 

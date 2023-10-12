@@ -1,6 +1,7 @@
 import express from 'express'
 import logger from 'morgan'
 import bodyParser from 'body-parser'
+const axios = require('axios');
 import cors from 'cors'
 
 import EventsRouter from './routes/events'
