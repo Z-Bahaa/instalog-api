@@ -84,8 +84,8 @@ const sendPostRequest = () => {
     });
 };
 
-setInterval(
-  sendPostRequest
-, 30000);
+// setInterval(
+//   sendPostRequest
+// , 30000);
 
 export default app;
