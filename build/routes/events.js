@@ -16,9 +16,9 @@ const express_1 = require("express");
 const client_1 = require("@prisma/client");
 const index_node_1 = __importDefault(require("../lib/InstaLog/index.node"));
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-const EventsRouter = express_1.Router();
+const EventsRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-const instalog = index_node_1.default('0');
+const instalog = (0, index_node_1.default)('0');
 EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const event = req.body.event;
     try {
@@ -81,6 +81,23 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
         });
         yield csvWriter.writeRecords(events);
         res.status(200).download('events.csv', 'events.csv');
+    }
+    catch (err) {
+        res.status(500).json(err);
+    }
+}));
+EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    try {
+        const search_query = req.query.search_val;
+        const events = yield instalog.listEvents(0, search_query);
+        res.write(events);
+        setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+            const events = yield instalog.listEvents(0, search_query);
+            res.write(events);
+        }), 5000);
     }
     catch (err) {
         res.status(500).json(err);
