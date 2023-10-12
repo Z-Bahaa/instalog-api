@@ -138,7 +138,7 @@ const sendPostRequest = () => {
    }
   }
 
-  axios.post('https://instalog.fly.dev/events/', data, options)
+  axios.post('https://instalog-api.onrender.com/events/', data, options)
     .then((response:any) => {
       console.log(response.data);
     })
