@@ -1,14 +1,14 @@
 import express from 'express'
 import logger from 'morgan'
 import bodyParser from 'body-parser'
-const axios = require('axios');
+import axios from 'axios'
 import cors from 'cors'
 
 import EventsRouter from './routes/events'
 
 const app = express()
 
-app.use(logger('dev'));
+app.use(logger('dev:method :url :status :res[content-length] - :response-time ms'));
 app.use(bodyParser.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
