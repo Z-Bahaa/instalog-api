@@ -24,9 +24,6 @@ app.get('/', async (_: any, res: any) => {
 })
 
 
-// create event
-
-
 let data = {
   "event": {  
     "actor_id": "user_3VG742j9PUA2",
