@@ -1,12 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
+const client_1 = __importDefault(require("../../prisma/client"));
 const InstaLog = (secretKey) => {
     return {
         secretKey,
         listEvents: (page = 0, search_val) => {
-            return prisma.event.findMany({
+            return client_1.default.event.findMany({
                 orderBy: { occurred_at: 'desc' },
                 skip: 10 * page,
                 take: 11,
@@ -29,7 +31,7 @@ const InstaLog = (secretKey) => {
             });
         },
         createEvent: (event) => {
-            return prisma.event.create({
+            return client_1.default.event.create({
                 data: {
                     actor_id: event.actor_id,
                     actor_name: event.actor_name,

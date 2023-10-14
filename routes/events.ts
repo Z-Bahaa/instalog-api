@@ -1,10 +1,10 @@
 import { Router, Request } from 'express'
-import { PrismaClient } from '@prisma/client'
+import prisma from '../prisma/client'
 import InstaLog from '../lib/InstaLog'
+import { create } from 'domain';
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const EventsRouter = Router()
-const prisma = new PrismaClient()
 const instalog = InstaLog('0')
 
 
@@ -13,7 +13,7 @@ EventsRouter.post('/', async (req: Request & {body: any}, res: any) => {
 
   try {
 
-    const prismaEvent = await instalog.createEvent(event)
+    const prismaEvent = await instalog.createEvent({...event, "occurred_at": new Date().toISOString()})
     
     res.status(201).json(prismaEvent)
   } catch (err) {
