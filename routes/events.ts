@@ -1,7 +1,6 @@
 import { Router, Request } from 'express'
 import prisma from '../prisma/client'
 import InstaLog from '../lib/InstaLog'
-import { create } from 'domain';
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const EventsRouter = Router()

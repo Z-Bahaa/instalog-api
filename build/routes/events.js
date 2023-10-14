@@ -21,7 +21,7 @@ const instalog = (0, InstaLog_1.default)('0');
 EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const event = req.body.event;
     try {
-        const prismaEvent = yield instalog.createEvent(event);
+        const prismaEvent = yield instalog.createEvent(Object.assign(Object.assign({}, event), { "occurred_at": new Date().toISOString() }));
         res.status(201).json(prismaEvent);
     }
     catch (err) {
@@ -86,16 +86,56 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('Client connected');
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    // prisma.$on('query', (e) => {
-    //   if (e.query.includes('create')) {
-    //     const regex = /(?<=\{)[^}]*(?=\})/g
-    //     const matches = e.query.match(regex)
-    //     const models = matches?.map((match) => JSON.parse(`{${match}}`))
-    //     console.log('Object created:', models)
-    //   }
-    // })
+    // res.setHeader('Access-Control-Allow-Origin', '*')
+    const data = {
+        "event": {
+            "actor_id": "user_3VG742j9PUA2",
+            "actor_name": "zeyad bahaa",
+            "group": "instatus.com",
+            "action": {
+                "name": "user.searched_activity_log_events"
+            },
+            "target_id": "user_DOKVD1U3L031",
+            "target_name": "zeyad@instatus.com",
+            "location": "105.40.62.95",
+            "occurred_at": new Date().toISOString(),
+            "metadata": {
+                "redirect": "/setup",
+                "description": "User Searched Activity Log Events.",
+                "x_request_id": "req_W4Y47lljg85H"
+            }
+        }
+    };
+    const prismaEvent = instalog.createEvent(data.event);
+    res.write(`data: ${prismaEvent}\n\n`);
+    const intervalId = setInterval(() => {
+        const data = {
+            "event": {
+                "actor_id": "user_3VG742j9PUA2",
+                "actor_name": "zeyad bahaa",
+                "group": "instatus.com",
+                "action": {
+                    "name": "user.searched_activity_log_events"
+                },
+                "target_id": "user_DOKVD1U3L031",
+                "target_name": "zeyad@instatus.com",
+                "location": "105.40.62.95",
+                "occurred_at": new Date().toISOString(),
+                "metadata": {
+                    "redirect": "/setup",
+                    "description": "User Searched Activity Log Events.",
+                    "x_request_id": "req_W4Y47lljg85H"
+                }
+            }
+        };
+        const prismaEvent = instalog.createEvent(data.event);
+        res.write(`data: ${prismaEvent}\n\n`);
+    }, 30000);
     res.on('close', () => {
+        console.log('Client closed connection');
+        clearInterval(intervalId);
         res.end();
     });
 }));
