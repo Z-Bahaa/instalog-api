@@ -1,6 +1,6 @@
 import { Router, Request } from 'express'
 import { PrismaClient } from '@prisma/client'
-import InstaLog from '../lib/InstaLog/index.node'
+import InstaLog from '../lib/InstaLog'
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const EventsRouter = Router()
@@ -86,6 +86,65 @@ EventsRouter.get('/export', async (req: Request & {query: any}, res: any) => {
 
 })
 
+EventsRouter.get('/live', async (req: Request, res: any) => {
+  console.log('Client connected')
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
+  // res.setHeader('Access-Control-Allow-Origin', '*')
+
+  const data = {
+    "event": {  
+      "actor_id": "user_3VG742j9PUA2",
+      "actor_name": "zeyad bahaa",
+      "group": "instatus.com",
+      "action": {
+        "name": "user.searched_activity_log_events"
+      },
+      "target_id": "user_DOKVD1U3L031",
+      "target_name": "zeyad@instatus.com",
+      "location": "105.40.62.95",
+      "occurred_at": new Date().toISOString(),
+      "metadata": {
+        "redirect": "/setup",
+        "description": "User Searched Activity Log Events.",
+        "x_request_id": "req_W4Y47lljg85H"
+      }
+   }
+  }
+  const prismaEvent = instalog.createEvent(data.event)
+  res.write(`data: ${prismaEvent}\n\n`)
+
+  const intervalId = setInterval(() => {
+    const data = {
+      "event": {  
+        "actor_id": "user_3VG742j9PUA2",
+        "actor_name": "zeyad bahaa",
+        "group": "instatus.com",
+        "action": {
+          "name": "user.searched_activity_log_events"
+        },
+        "target_id": "user_DOKVD1U3L031",
+        "target_name": "zeyad@instatus.com",
+        "location": "105.40.62.95",
+        "occurred_at": new Date().toISOString(),
+        "metadata": {
+          "redirect": "/setup",
+          "description": "User Searched Activity Log Events.",
+          "x_request_id": "req_W4Y47lljg85H"
+        }
+     }
+    }
+    const prismaEvent = instalog.createEvent(data.event)
+    res.write(`data: ${prismaEvent}\n\n`)
+  }, 30000)
+
+  res.on('close', () => {
+    console.log('Client closed connection')
+    clearInterval(intervalId)
+    res.end()
+  })
+
+
+})
 
 export default EventsRouter;
 
