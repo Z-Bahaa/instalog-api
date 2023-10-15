@@ -24,9 +24,9 @@ EventsRouter.post('/', async (req: Request & {body: any}, res: any) => {
 EventsRouter.get('/', async (req: Request & {query: any}, res: any) => { 
 
   try {
-    const page = req.query.page === undefined ? 0 : req.query.page
     const search_query = req.query.search_val
-    const events = await instalog.listEvents(page, search_query)
+    const last_cursor = req.query.last_cursor
+    const events = await instalog.listEvents(search_query, last_cursor)
     
     res.status(200).json(events)
   } catch (err) {

@@ -4,16 +4,22 @@ import InstaLogEvent from '../../types/event'
 
 const InstaLog = (secretKey: string): {
   secretKey: string;
-  listEvents: (page: number, search_val: string) => any;
+  listEvents: (search_val: string, last_cursor: any) => any;
   createEvent: (event: InstaLogEvent) => any;
 } => {
   return {
     secretKey,
-    listEvents: (page: number = 0, search_val: string): any => {
-      return prisma.event.findMany({
+    listEvents: async (search_val: string, last_cursor: any): Promise<any> => {
+      let result = await prisma.event.findMany({
         orderBy: { occurred_at: 'desc' },
-        skip: 10*page,
-        take: 11,
+        ...(last_cursor && {
+          skip: 1, 
+          cursor: {
+            id: last_cursor as string,
+          }
+        }),
+       
+        take: 10,
         where: {
           OR: [
             {actor_name: {contains: search_val, mode: 'insensitive',}},
@@ -31,6 +37,35 @@ const InstaLog = (secretKey: string): {
           metadata: true
         }
       });
+      
+      if (result.length == 0) {
+        return{
+       data: [],
+       metaData: {
+         last_cursor: null,
+         has_next_page: false,
+       },
+        }
+      }
+
+      const lastPostInResults: any = result[result.length - 1];
+      const cursor: any = lastPostInResults.id;
+
+      const nextPage = await prisma.event.findMany({
+        take:  7,
+        skip: 1, 
+        cursor: {
+          id: cursor,
+        },
+      });
+      const data = {
+        data: result, metaData: {
+        last_cursor: cursor,
+        has_next_page: nextPage.length > 0,
+        }
+      };
+
+      return data;
     },
     createEvent: (event: InstaLogEvent): any => {
       return prisma.event.create({
