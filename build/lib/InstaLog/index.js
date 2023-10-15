@@ -11,7 +11,7 @@ const InstaLog = (secretKey) => {
             return client_1.default.event.findMany({
                 orderBy: { occurred_at: 'desc' },
                 skip: 10 * page,
-                take: 11,
+                take: 10,
                 where: {
                     OR: [
                         { actor_name: { contains: search_val, mode: 'insensitive', } },

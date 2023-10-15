@@ -108,9 +108,9 @@ EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, functi
             }
         }
     };
-    const prismaEvent = instalog.createEvent(data.event);
+    const prismaEvent = yield instalog.createEvent(data.event);
     res.write(`data: ${prismaEvent}\n\n`);
-    const intervalId = setInterval(() => {
+    const intervalId = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const data = {
             "event": {
                 "actor_id": "user_3VG742j9PUA2",
@@ -130,9 +130,9 @@ EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, functi
                 }
             }
         };
-        const prismaEvent = instalog.createEvent(data.event);
+        const prismaEvent = yield instalog.createEvent(data.event);
         res.write(`data: ${prismaEvent}\n\n`);
-    }, 30000);
+    }), 30000);
     res.on('close', () => {
         console.log('Client closed connection');
         clearInterval(intervalId);

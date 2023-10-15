@@ -109,10 +109,10 @@ EventsRouter.get('/live', async (req: Request, res: any) => {
       }
    }
   }
-  const prismaEvent = instalog.createEvent(data.event)
+  const prismaEvent = await instalog.createEvent(data.event)
   res.write(`data: ${prismaEvent}\n\n`)
 
-  const intervalId = setInterval(() => {
+  const intervalId = setInterval(async () => {
     const data = {
       "event": {  
         "actor_id": "user_3VG742j9PUA2",
@@ -132,7 +132,7 @@ EventsRouter.get('/live', async (req: Request, res: any) => {
         }
      }
     }
-    const prismaEvent = instalog.createEvent(data.event)
+    const prismaEvent = await instalog.createEvent(data.event)
     res.write(`data: ${prismaEvent}\n\n`)
   }, 30000)
 
