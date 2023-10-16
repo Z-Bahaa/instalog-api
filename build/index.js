@@ -17,6 +17,8 @@ const morgan_1 = __importDefault(require("morgan"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const events_1 = __importDefault(require("./routes/events"));
+require("./eventEmitter");
+require("./generateEvents");
 const app = (0, express_1.default)();
 app.use((0, morgan_1.default)('dev:method :url :status :res[content-length] - :response-time ms'));
 app.use(body_parser_1.default.json());

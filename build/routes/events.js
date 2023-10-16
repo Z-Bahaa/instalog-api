@@ -15,14 +15,42 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const client_1 = __importDefault(require("../prisma/client"));
 const InstaLog_1 = __importDefault(require("../lib/InstaLog"));
+const eventEmitter_1 = __importDefault(require("../eventEmitter"));
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const EventsRouter = (0, express_1.Router)();
-const instalog = (0, InstaLog_1.default)('0');
+const instalog = new InstaLog_1.default('0');
 EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const event = req.body.event;
+    const payload = req.body;
     try {
-        const prismaEvent = yield instalog.createEvent(Object.assign(Object.assign({}, event), { "occurred_at": new Date().toISOString() }));
-        res.status(201).json(prismaEvent);
+        const newEvent = instalog.createEvent(payload);
+        const savedEvent = yield client_1.default.event.create({
+            data: {
+                actor_id: newEvent.actor_id,
+                actor_name: newEvent.actor_name,
+                group: newEvent.group,
+                target_id: newEvent.target_id,
+                target_name: newEvent.target_name,
+                location: newEvent.location,
+                occurred_at: newEvent.occurred_at,
+                action: {
+                    create: {
+                        name: newEvent.action.name,
+                    }
+                },
+                metadata: {
+                    create: {
+                        redirect: newEvent.metadata.redirect,
+                        description: newEvent.metadata.description,
+                        x_request_id: newEvent.metadata.x_request_id,
+                    }
+                },
+            },
+            include: {
+                action: true,
+                metadata: true
+            }
+        });
+        res.status(201).json(savedEvent);
     }
     catch (err) {
         res.status(500).json(err);
@@ -30,57 +58,39 @@ EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function*
 }));
 EventsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const page = req.query.page === undefined ? 0 : req.query.page;
-        const search_query = req.query.search_val;
-        const events = yield instalog.listEvents(page, search_query);
-        res.status(200).json(events);
+        const { page, search_val } = req.query;
+        const allEvents = client_1.default.event.findMany({
+            orderBy: { occurred_at: 'desc' },
+            skip: 10 * (page || 0),
+            take: 10,
+            where: {
+                OR: [
+                    { actor_name: { contains: search_val, mode: 'insensitive', } },
+                    { actor_id: { contains: search_val, mode: 'insensitive', } },
+                    { target_name: { contains: search_val, mode: 'insensitive', } },
+                    { target_id: { contains: search_val, mode: 'insensitive', } },
+                    {
+                        action: {
+                            id: { contains: search_val, mode: 'insensitive', },
+                            name: { contains: search_val, mode: 'insensitive', },
+                        }
+                    }
+                ]
+            },
+            include: {
+                action: true,
+                metadata: true
+            }
+        });
+        res.status(200).json(allEvents);
     }
     catch (err) {
         res.status(500).json(err);
     }
 }));
-EventsRouter.get('/lookups/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const data = {
-        users: [
-            {
-                "actor_id": "user_3VG742j9PUA2",
-                "actor_name": "zeyad bahaa",
-                "group": "facebook.com",
-            },
-            {
-                "actor_id": "user_3VG742j9PUA2",
-                "actor_name": "ali salah",
-                "group": "instatus.com",
-            },
-            {
-                "actor_id": "user_3VG742j9PUA2",
-                "actor_name": "sami omar",
-                "group": "google.com",
-            },
-        ],
-        actions: [
-            {
-                "name": "user.searched_activity_log_events"
-            },
-            {
-                "name": "user.login_success"
-            },
-            {
-                "name": "user.logout_success"
-            },
-            {
-                "name": "user.login_failure"
-            },
-            {
-                "name": "user.create_post_success"
-            }
-        ]
-    };
-    res.json(data);
-}));
 EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const search_val = req.query.search_val;
+        const { search_val } = req.query;
         const events = yield client_1.default.event.findMany({
             where: {
                 OR: [
@@ -88,10 +98,12 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
                     { actor_id: { contains: search_val, mode: 'insensitive', } },
                     { target_name: { contains: search_val, mode: 'insensitive', } },
                     { target_id: { contains: search_val, mode: 'insensitive', } },
-                    { action: {
+                    {
+                        action: {
                             id: { contains: search_val, mode: 'insensitive', },
                             name: { contains: search_val, mode: 'insensitive', },
-                        } }
+                        }
+                    }
                 ]
             },
             include: {
@@ -125,94 +137,11 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('Client connected');
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-    // res.setHeader('Access-Control-Allow-Origin', '*')
-    const intervalId = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        const data = {
-            users: [
-                {
-                    "actor_id": "user_3VG742k9PUA2",
-                    "actor_name": "zeyad bahaa",
-                    "group": "facebook.com",
-                    "target_name": "sami@google.com",
-                    "target_id": "user_DOKwD1U3L031",
-                    "location": "105.40.62.95",
-                },
-                {
-                    "actor_id": "user_3VG7p2j9PUA2",
-                    "actor_name": "ali salah",
-                    "group": "instatus.com",
-                    "target_name": "zeyad@facebook.com",
-                    "target_id": "user_DOKVD1UpL031",
-                    "location": "189.90.26.15",
-                },
-                {
-                    "actor_id": "user_3VG740j9PUA2",
-                    "actor_name": "sami omar",
-                    "group": "google.com",
-                    "target_name": "ali@instatus.com",
-                    "target_id": "user_DOKVD1U3j031",
-                    "location": "151.42.72.12",
-                },
-            ],
-            actions: [
-                {
-                    "name": "user.searched_activity_log_events",
-                    "redirect": "/event_log",
-                    "description": "User Searched Activity Log Events.",
-                    "x_request_id": "req_W4Y47lljg85H"
-                },
-                {
-                    "name": "user.login_success",
-                    "redirect": "/profile",
-                    "description": "User Logged In Successfully",
-                    "x_request_id": "req_C4Y47lljj85H"
-                },
-                {
-                    "name": "user.logout_success",
-                    "redirect": "/landing",
-                    "description": "User Logged Out Successfully",
-                    "x_request_id": "req_H4Y47lljg85w"
-                },
-                {
-                    "name": "user.login_failure",
-                    "redirect": "/setup",
-                    "description": "User Login Failure",
-                    "x_request_id": "req_K4Y47lljg85H"
-                },
-                {
-                    "name": "user.create_post_success",
-                    "redirect": "/post",
-                    "description": "User Created New Post Successfully.",
-                    "x_request_id": "req_O4Y47lljg85H"
-                }
-            ]
-        };
-        const randomUser = data.users[Math.floor(Math.random() * data.users.length)];
-        const randomAction = data.actions[Math.floor(Math.random() * data.actions.length)];
-        const prismaEvent = yield instalog.createEvent({
-            "actor_id": randomUser.actor_id,
-            "actor_name": randomUser.actor_name,
-            "group": randomUser.group,
-            "action": {
-                "name": randomAction.name,
-            },
-            "target_id": randomUser.target_id,
-            "target_name": randomUser.target_name,
-            "location": randomUser.location,
-            "occurred_at": new Date().toISOString(),
-            "metadata": {
-                "redirect": randomAction.redirect,
-                "description": randomAction.description,
-                "x_request_id": randomAction.x_request_id
-            }
-        });
-        res.write(`data: ${prismaEvent}\n\n`);
-    }), 30000);
+    eventEmitter_1.default.on('new_event_created', (newEvent) => {
+        res.write(`data: ${newEvent}\n\n`);
+    });
     res.on('close', () => {
-        console.log('Client closed connection');
-        clearInterval(intervalId);
         res.end();
     });
 }));
