@@ -13,12 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = __importDefault(require("./prisma/client"));
 const eventEmitter_1 = __importDefault(require("./eventEmitter"));
 const lookups_1 = __importDefault(require("./lookups"));
 setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     const randomUser = lookups_1.default.users[Math.floor(Math.random() * lookups_1.default.users.length)];
     const randomAction = lookups_1.default.actions[Math.floor(Math.random() * lookups_1.default.actions.length)];
-    const newEvent = yield prisma.event.create({
+    const newEvent = yield client_1.default.event.create({
         data: {
             actor_id: randomUser.actor_id,
             actor_name: randomUser.actor_name,
@@ -26,7 +27,7 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
             target_id: randomUser.target_id,
             target_name: randomUser.target_name,
             location: randomUser.location,
-            "occurred_at": new Date().toISOString(),
+            occurred_at: new Date().toISOString(),
             action: {
                 create: {
                     name: randomAction.name,

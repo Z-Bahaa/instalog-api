@@ -20,7 +20,9 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const EventsRouter = (0, express_1.Router)();
 const instalog = new InstaLog_1.default('0');
 EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const payload = req.body;
+    var _a;
+    const payload = (_a = req.body) === null || _a === void 0 ? void 0 : _a.event;
+    payload.occurred_at = new Date().toISOString();
     try {
         const newEvent = instalog.createEvent(payload);
         const savedEvent = yield client_1.default.event.create({
@@ -58,31 +60,52 @@ EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function*
 }));
 EventsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { page, search_val } = req.query;
-        const allEvents = client_1.default.event.findMany({
-            orderBy: { occurred_at: 'desc' },
-            skip: 10 * (page || 0),
-            take: 10,
-            where: {
+        const { search_val, last_cursor } = req.query;
+        let result = yield client_1.default.event.findMany(Object.assign(Object.assign({ orderBy: { occurred_at: 'desc' } }, (last_cursor && {
+            skip: 1,
+            cursor: {
+                id: last_cursor,
+            }
+        })), { take: 10, where: {
                 OR: [
                     { actor_name: { contains: search_val, mode: 'insensitive', } },
                     { actor_id: { contains: search_val, mode: 'insensitive', } },
                     { target_name: { contains: search_val, mode: 'insensitive', } },
                     { target_id: { contains: search_val, mode: 'insensitive', } },
-                    {
-                        action: {
+                    { action: {
                             id: { contains: search_val, mode: 'insensitive', },
                             name: { contains: search_val, mode: 'insensitive', },
-                        }
-                    }
+                        } }
                 ]
-            },
-            include: {
+            }, include: {
                 action: true,
                 metadata: true
-            }
+            } }));
+        if (result.length == 0) {
+            res.status(200).json({
+                data: [],
+                metaData: {
+                    last_cursor: null,
+                    has_next_page: false,
+                },
+            });
+        }
+        const lastPostInResults = result[result.length - 1];
+        const cursor = lastPostInResults.id;
+        const nextPage = yield client_1.default.event.findMany({
+            take: 7,
+            skip: 1,
+            cursor: {
+                id: cursor,
+            },
         });
-        res.status(200).json(allEvents);
+        const data = {
+            data: result, metaData: {
+                last_cursor: cursor,
+                has_next_page: nextPage.length > 0,
+            }
+        };
+        res.status(200).json(data);
     }
     catch (err) {
         res.status(500).json(err);
@@ -139,7 +162,7 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
 EventsRouter.get('/live', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
     eventEmitter_1.default.on('new_event_created', (newEvent) => {
-        res.write(`data: ${newEvent}\n\n`);
+        res.write(`data: ${JSON.stringify(newEvent)}\n\n`);
     });
     res.on('close', () => {
         res.end();

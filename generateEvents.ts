@@ -1,5 +1,7 @@
 /* Generate Frequent Events */
 
+import prisma from './prisma/client'
+
 import eventEmitter from "./eventEmitter";
 import Lookups from "./lookups";
 
@@ -17,7 +19,7 @@ setInterval(async () => {
       target_id: randomUser.target_id,
       target_name: randomUser.target_name,
       location: randomUser.location,
-      "occurred_at": new Date().toISOString(),
+      occurred_at: new Date().toISOString(),
       action: {
         create: {
           name: randomAction.name,
