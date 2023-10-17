@@ -81,24 +81,25 @@ EventsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 action: true,
                 metadata: true
             } }));
-        let responseData = {
-            data: [],
-            metadata: {
-                last_cursor: null,
-                first_cursor: null,
-            },
-        };
-        if (result.length > 0) {
-            const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
-            const firstPosition = result[0];
-            responseData = {
-                data: result,
+        if (result.length == 0) {
+            res.status(200).json({
+                data: [],
                 metadata: {
-                    first_cursor: firstPosition.id || null,
-                    last_cursor: (lastPosition === null || lastPosition === void 0 ? void 0 : lastPosition.id) || null,
-                }
-            };
+                    last_cursor: null,
+                    first_cursor: null,
+                },
+            });
+            return;
         }
+        const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
+        const firstPosition = result[0];
+        const responseData = {
+            data: result,
+            metadata: {
+                first_cursor: firstPosition.id || null,
+                last_cursor: (lastPosition === null || lastPosition === void 0 ? void 0 : lastPosition.id) || null,
+            }
+        };
         res.status(200).json(responseData);
     }
     catch (err) {
