@@ -1,10 +1,12 @@
 import express from 'express'
 import logger from 'morgan'
 import bodyParser from 'body-parser'
-import axios from 'axios'
 import cors from 'cors'
 
 import EventsRouter from './routes/events'
+
+import './eventEmitter'
+import './generateEvents'
 
 const app = express()
 
