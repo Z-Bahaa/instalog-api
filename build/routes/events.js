@@ -81,23 +81,60 @@ EventsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 action: true,
                 metadata: true
             } }));
-        if (result.length == 0) {
-            res.status(200).json({
-                data: [],
-                metadata: {
-                    last_cursor: null,
-                },
-            });
-            return;
-        }
-        const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
-        const data = {
-            data: result,
+        let responseData = {
+            data: [],
             metadata: {
-                last_cursor: (lastPosition === null || lastPosition === void 0 ? void 0 : lastPosition.id) || null,
-            }
+                last_cursor: null,
+                first_cursor: null,
+            },
         };
-        res.status(200).json(data);
+        if (result.length > 0) {
+            const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
+            const firstPosition = result[0];
+            responseData = {
+                data: result,
+                metadata: {
+                    first_cursor: firstPosition.id || null,
+                    last_cursor: (lastPosition === null || lastPosition === void 0 ? void 0 : lastPosition.id) || null,
+                }
+            };
+        }
+        res.status(200).json(responseData);
+    }
+    catch (err) {
+        res.status(500).json(err);
+    }
+}));
+EventsRouter.get('/sync', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { first_cursor } = req.query;
+        console.log(first_cursor);
+        let result = yield client_1.default.event.findMany(Object.assign(Object.assign({ orderBy: { occurred_at: 'asc' } }, (first_cursor && {
+            skip: 1,
+            cursor: {
+                id: first_cursor,
+            }
+        })), { include: {
+                action: true,
+                metadata: true
+            } }));
+        let responseData = {
+            data: [],
+            metadata: {
+                first_cursor: first_cursor,
+            },
+        };
+        if (result.length > 0) {
+            const lastPosition = result[result.length - 1];
+            result = result.reverse();
+            responseData = {
+                data: result,
+                metadata: {
+                    first_cursor: (lastPosition === null || lastPosition === void 0 ? void 0 : lastPosition.id) || null,
+                }
+            };
+        }
+        res.status(200).json(responseData);
     }
     catch (err) {
         res.status(500).json(err);

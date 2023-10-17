@@ -102,26 +102,86 @@ EventsRouter.get('/', async (req: Request & { query: any }, res: any) => {
       }
     });
 
-    if (result.length == 0) {
-      res.status(200).json({
-        data: [],
+    let responseData: {
+      data: any,
+      metadata: {
+        last_cursor: string | null,
+        first_cursor: string | null,
+      }
+    } = {
+      data: [],
+      metadata: {
+        last_cursor: null,
+        first_cursor: null,
+      },
+    }
+    if(result.length > 0) {
+      const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
+      const firstPosition = result[0];
+
+       responseData = {
+        data: result,
         metadata: {
-          last_cursor: null,
-        },
-      })
-      return
+          first_cursor: firstPosition.id || null,
+          last_cursor: lastPosition?.id || null,
+        }
+      };
+
     }
 
-    const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
+    
+    res.status(200).json(responseData)
+  } catch (err) {
+    res.status(500).json(err);
+  }
+})
 
-    const data = {
-      data: result,
-      metadata: {
-        last_cursor: lastPosition?.id || null,
+EventsRouter.get('/sync', async (req: Request & { query: any }, res: any) => {
+
+  try {
+    const { first_cursor } = req.query
+    console.log(first_cursor)
+
+    let result = await prisma.event.findMany({
+      orderBy: { occurred_at: 'asc' },
+      ...(first_cursor && {
+        skip: 1,
+        cursor: {
+          id: first_cursor,
+        }
+      }),
+      include: {
+        action: true,
+        metadata: true
       }
-    };
+    });
 
-    res.status(200).json(data)
+    let responseData: {
+      data: any,
+      metadata: {
+        first_cursor: string | null,
+      }
+    } = {
+      data: [],
+      metadata: {
+        first_cursor: first_cursor,
+      },
+    }
+    if(result.length > 0) {
+      const lastPosition = result[result.length - 1];
+      result = result.reverse()
+
+       responseData = {
+        data: result,
+        metadata: {
+          first_cursor: lastPosition?.id || null,
+        }
+      };
+
+    }
+
+    
+    res.status(200).json(responseData)
   } catch (err) {
     res.status(500).json(err);
   }
