@@ -7,6 +7,7 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const EventsRouter = Router()
 const instalog = new InstaLog('0')
 
+const ITEMS_PER_PAGE = 10;
 
 interface EventPayload {
   actor_id: string;
@@ -78,23 +79,21 @@ EventsRouter.get('/', async (req: Request & { query: any }, res: any) => {
     let result = await prisma.event.findMany({
       orderBy: { occurred_at: 'desc' },
       ...(last_cursor && {
-        skip: 1, 
         cursor: {
-          id: last_cursor as string,
+          id: last_cursor,
         }
       }),
-     
-      take: 10,
+      take: ITEMS_PER_PAGE + 1,
       where: {
         OR: [
-          {actor_name: {contains: search_val, mode: 'insensitive',}},
-          {actor_id: {contains: search_val, mode: 'insensitive',}},
-          {target_name: {contains: search_val, mode: 'insensitive',}},
-          {target_id: {contains: search_val, mode: 'insensitive',}},
-          {action: {
-            id: {contains: search_val, mode: 'insensitive',},
-            name: {contains: search_val, mode: 'insensitive',},
-          }}
+          { target_name: { contains: search_val, mode: 'insensitive', } },
+          { target_id: { contains: search_val, mode: 'insensitive', } },
+          {
+            action: {
+              id: { contains: search_val, mode: 'insensitive', },
+              name: { contains: search_val, mode: 'insensitive', },
+            }
+          }
         ]
       },
       include: {
@@ -102,31 +101,23 @@ EventsRouter.get('/', async (req: Request & { query: any }, res: any) => {
         metadata: true
       }
     });
-    
+
     if (result.length == 0) {
       res.status(200).json({
         data: [],
-        metaData: {
+        metadata: {
           last_cursor: null,
-          has_next_page: false,
         },
-        })
+      })
+      return
     }
 
-    const lastPostInResults: any = result[result.length - 1];
-    const cursor: any = lastPostInResults.id;
+    const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
 
-    const nextPage = await prisma.event.findMany({
-      take:  7,
-      skip: 1, 
-      cursor: {
-        id: cursor,
-      },
-    });
     const data = {
-      data: result, metaData: {
-      last_cursor: cursor,
-      has_next_page: nextPage.length > 0,
+      data: result,
+      metadata: {
+        last_cursor: lastPosition?.id || null,
       }
     };
 
@@ -134,7 +125,6 @@ EventsRouter.get('/', async (req: Request & { query: any }, res: any) => {
   } catch (err) {
     res.status(500).json(err);
   }
-
 })
 
 
@@ -144,8 +134,6 @@ EventsRouter.get('/export', async (req: Request & { query: any }, res: any) => {
     const events = await prisma.event.findMany({
       where: {
         OR: [
-          { actor_name: { contains: search_val, mode: 'insensitive', } },
-          { actor_id: { contains: search_val, mode: 'insensitive', } },
           { target_name: { contains: search_val, mode: 'insensitive', } },
           { target_id: { contains: search_val, mode: 'insensitive', } },
           {

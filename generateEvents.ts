@@ -7,7 +7,6 @@ import Lookups from "./lookups";
 
 setInterval(async () => {
 
-
   const randomUser = Lookups.users[Math.floor(Math.random() * Lookups.users.length)];
   const randomAction = Lookups.actions[Math.floor(Math.random() * Lookups.actions.length)];
 

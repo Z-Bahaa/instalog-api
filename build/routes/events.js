@@ -19,6 +19,7 @@ const eventEmitter_1 = __importDefault(require("../eventEmitter"));
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const EventsRouter = (0, express_1.Router)();
 const instalog = new InstaLog_1.default('0');
+const ITEMS_PER_PAGE = 10;
 EventsRouter.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const payload = (_a = req.body) === null || _a === void 0 ? void 0 : _a.event;
@@ -62,20 +63,19 @@ EventsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { search_val, last_cursor } = req.query;
         let result = yield client_1.default.event.findMany(Object.assign(Object.assign({ orderBy: { occurred_at: 'desc' } }, (last_cursor && {
-            skip: 1,
             cursor: {
                 id: last_cursor,
             }
-        })), { take: 10, where: {
+        })), { take: ITEMS_PER_PAGE + 1, where: {
                 OR: [
-                    { actor_name: { contains: search_val, mode: 'insensitive', } },
-                    { actor_id: { contains: search_val, mode: 'insensitive', } },
                     { target_name: { contains: search_val, mode: 'insensitive', } },
                     { target_id: { contains: search_val, mode: 'insensitive', } },
-                    { action: {
+                    {
+                        action: {
                             id: { contains: search_val, mode: 'insensitive', },
                             name: { contains: search_val, mode: 'insensitive', },
-                        } }
+                        }
+                    }
                 ]
             }, include: {
                 action: true,
@@ -84,25 +84,17 @@ EventsRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (result.length == 0) {
             res.status(200).json({
                 data: [],
-                metaData: {
+                metadata: {
                     last_cursor: null,
-                    has_next_page: false,
                 },
             });
+            return;
         }
-        const lastPostInResults = result[result.length - 1];
-        const cursor = lastPostInResults.id;
-        const nextPage = yield client_1.default.event.findMany({
-            take: 7,
-            skip: 1,
-            cursor: {
-                id: cursor,
-            },
-        });
+        const lastPosition = result.splice(ITEMS_PER_PAGE, ITEMS_PER_PAGE + 1)[0];
         const data = {
-            data: result, metaData: {
-                last_cursor: cursor,
-                has_next_page: nextPage.length > 0,
+            data: result,
+            metadata: {
+                last_cursor: (lastPosition === null || lastPosition === void 0 ? void 0 : lastPosition.id) || null,
             }
         };
         res.status(200).json(data);
@@ -117,8 +109,6 @@ EventsRouter.get('/export', (req, res) => __awaiter(void 0, void 0, void 0, func
         const events = yield client_1.default.event.findMany({
             where: {
                 OR: [
-                    { actor_name: { contains: search_val, mode: 'insensitive', } },
-                    { actor_id: { contains: search_val, mode: 'insensitive', } },
                     { target_name: { contains: search_val, mode: 'insensitive', } },
                     { target_id: { contains: search_val, mode: 'insensitive', } },
                     {
