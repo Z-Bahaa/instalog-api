@@ -27,7 +27,7 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
             target_id: randomUser.target_id,
             target_name: randomUser.target_name,
             location: randomUser.location,
-            "occurred_at": new Date().toISOString(),
+            occurred_at: new Date().toISOString(),
             action: {
                 create: {
                     name: randomAction.name,
